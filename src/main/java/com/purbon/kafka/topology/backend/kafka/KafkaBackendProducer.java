@@ -2,9 +2,6 @@ package com.purbon.kafka.topology.backend.kafka;
 
 import com.purbon.kafka.topology.Configuration;
 import com.purbon.kafka.topology.backend.BackendState;
-import java.util.Properties;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -13,12 +10,16 @@ import org.apache.kafka.common.serialization.Serdes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Properties;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+
 public class KafkaBackendProducer {
 
   private static final Logger LOGGER = LogManager.getLogger(KafkaBackendProducer.class);
 
-  private String instanceId;
-  private Configuration config;
+  private final String instanceId;
+  private final Configuration config;
   private KafkaProducer<String, BackendState> producer;
   private Future<RecordMetadata> future;
 
@@ -39,7 +40,7 @@ public class KafkaBackendProducer {
   }
 
   public void save(BackendState backendState) {
-    var record = new ProducerRecord<>(config.getJulieKafkaConfigTopic(), instanceId, backendState);
+    var record = new ProducerRecord<>(config.getJulieKafkaConfigTopic(), 0, instanceId, backendState);
     future =
         producer.send(
             record,
@@ -52,7 +53,7 @@ public class KafkaBackendProducer {
     try {
       future.get();
     } catch (InterruptedException | ExecutionException e) {
-      e.printStackTrace();
+      LOGGER.error(e);
     }
   }
 
